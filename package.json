@@ -1,0 +1,13 @@
+{
+  "name": "wwpp",
+  "version": "0.1.0",
+  "bugs": {"url": "https://github.com/jin-sandbox/webwork/issues"},
+  "description": "webwork plus plus",
+  "keywords": ["web","rest","restfull","http","application","framework"],
+  "main": "lib/index.js",
+  "maintainers": [{"name": "jindw","email": "jindw@xidea.org" }],
+  "license": "MIT",
+  "engines": { "node": ">= 6.0.0"},
+  "dependencies": {"webwork":"*"},
+  "optionalDependencies": {"xmldom":"*","lite":"*"}
+}
