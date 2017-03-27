@@ -1,2 +1,5 @@
-var path = require('path')
-require('wwpp')('',path.join(__dirname,'./router/'),path.join(__dirname,'./webroot/')).then(function(app){app.start()})
+var path = require('path');
+var schemaDir = path.join(__dirname,'./schema/');
+var webroot = path.join(__dirname,'./webroot/');
+
+require('wwpp')(schemaDir,webroot).then(function(app){app.start()})

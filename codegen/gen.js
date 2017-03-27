@@ -1,47 +1,101 @@
-var parseLite = require('lite').parseLite
+const parseLite = require('lite').parseLite
+const fs = require('fs')
+const path = require('path')
+const child_process = require("child_process");
 
-function genSource(dir,javaTpl,iosTpl,nsPrefix){
-    var fs = require('fs');
-    var gen = new Gen(nsPrefix);
-    var classes = [];
-    fs.readdir(dir,function(err,names){
-        for(var name of names){
-            if(name.match(/\.js$/)){
-                name = name.slice(0,-3);
-                console.log(name)
-                var objMap = require(dir+'/'+name)
-                for(var n in objMap){
-                    var config = objMap[n];
-                    if(/^[A-Z]/.test(n)){//common classes
-                        var model = gen.createClass(config,n,name)
-                    }else if(config.schema){
-                        var model = gen.createInterface(config.schema,n,name)
-                    }else{
-                        continue;
-                    }
-                    console.log(javaTpl(model))
-                    classes.push(model);
-                    console.log(n,name)
-                }
-            }
+
+module.exports = run;
+
+async function run(schemaDir,outputDir,nsPrefix){
+    if(!schemaDir || !outputDir){
+        return;
+    }
+    try{
+        schemaDir = fs.realpathSync(schemaDir);
+        outputDir = fs.realpathSync(outputDir);
+        console.log(`schemaDir:${schemaDir}; outputDir: ${outputDir}; nsPrefix{nsPrefix}`);
+        if(!schemaDir || !outputDir){
+            return;
         }
-        console.log(iosTpl({classes:classes,nsPrefix:nsPrefix}))
+        //var tpl = await readFile(__dirname+'/java.tpl');
+        //console.log(tpl)
+        var javaTpl =  parseLite(await readFile(__dirname+'/java.tpl')+'');
+        var iosTpl =  parseLite(await readFile(__dirname+'/oc.tpl')+'');
+        //genSource(schemaDir,outputDir,javaTpl,iosTpl,defaultPackage)
+        var gen = new Gen(schemaDir,nsPrefix);
+        var classes = await gen.genModel();
 
-        console.log('class:',classes.length,classes.map(c=>c.className))
-    })
+
+        var javaScource = []
+        for(var cls of classes){
+            var file = await mkdirs(outputDir,cls.nsName)+'/'+cls.className+'.java';
+            javaScource.push(file)
+            await writeFile(file,javaTpl(cls))
+        }
+        var cmd = 'javac -d '+outputDir + ' '+javaScource.join(' ');
+
+        child_process.exec(cmd,function(err){
+            console.log('javac complete:',arguments)
+            //jar cvf classes.jar Foo.class Bar.class
+            cmd = "jar cvf "+outputDir+'/model.jar '+javaScource.join(' ').replace(/([\w\.\$\/]+)\.java/g,'$& $1.class')
+            child_process.exec(cmd,function(err){
+                console.log('jar complete:',arguments)
+            })
+        })
+        var iosSource = iosTpl({classes:classes,nsPrefix:nsPrefix});
+        writeFile(outputDir+'/model.m',iosSource)
+    }catch(e){
+        console.log(e)
+    }
+    //console.log(classes)
 }
-function Gen(nsPrefix){
-    this.commonMap = {};
-    this.urlMap = {};
-    this.nsPrefix = nsPrefix;
-}
-Gen.prototype = {
-    createClass:function(config,className,fileName){
+
+
+class Gen{
+    constructor(schemaDir,nsPrefix){
+        this.commonMap = {};
+        this.urlMap = {};
+        this.nsPrefix = nsPrefix;
+        this.schemaDir = schemaDir;
+    }
+    async genModel(){
+        //function genSource(schemaDir,outputDir,javaTpl,iosTpl,nsPrefix){
+        var gen =this;
+        var classes = [];
+        return new Promise(function(resolve,reject){
+            fs.readdir(gen.schemaDir,function(err,names){
+                for(var name of names){
+                    if(name.match(/\.js$/)){
+                        name = name.slice(0,-3);
+                        //console.log(name)
+                        var objMap = require(gen.schemaDir+'/'+name)
+                        for(var n in objMap){
+                            var config = objMap[n];
+                            if(/^[A-Z]/.test(n)){//common classes
+                                var model = gen.createClass(config,n,name)
+                            }else if(config.schema){
+                                var model = gen.createInterface(config.schema,n,name)
+                            }else{
+                                continue;
+                            }
+                            //console.log(javaTpl(model))
+                            classes.push(model);
+                            //console.log(n,name)
+                        }
+                    }
+                }
+                resolve(classes)
+                //console.log(iosTpl({classes:classes,nsPrefix:nsPrefix}))
+                //console.log('class:',classes.length,classes.map(c=>c.className))
+            })
+        })
+    }
+    createClass(config,className,fileName){
         var nsName = genClassName(this.nsPrefix,fileName)
         var model = new ClassModel(config,className,nsName);
         return model;
-    },
-    createInterface:function(schema,httpMethodName,fileName){
+    }
+    createInterface(schema,httpMethodName,fileName){
         var className = formatName(fileName)+formatName(httpMethodName)
         var model = this.createClass(schema.response,className);
         if(schema.request){
@@ -71,30 +125,33 @@ function getType(attr,nsName,iosType){
     if(!attr.type || attr.type == 'object'){
         var ref = attr.ref || attr.$ref||'?#?';
         var refs = ref.split('#');
-        var ns = nsName.replace(/\.[^\.]+$/,'.'+refs[0]);
+        var ns = nsName.replace(/.*\./,'') == refs[0]? nsName : nsName + '.'+refs[0];
+        //console.log(nsName,ns,refs)
         if(iosType){
-            return genPrefix(genClassName(ns))+refs[1]
+            var type =  genPrefix(genClassName(ns))+refs[1];
+            return type+'*';
         }
         return  genClassName(ns,refs[1]);
     }else if(attr.type == 'array'){
         var itemType = getType(attr.items,nsName,iosType);
-        return iosType?`NSArray<${itemType}>`:`java.util.List<${itemType}>`
+        //if(iosType) console.log('array',itemType)
+        return iosType?`NSArray<${itemType}>*`:`java.util.List<${itemType}>`
     }else{
         switch(attr.type){
         case 'int':
         case 'long':
         case 'integer':
-            return 'int'
+            return iosType?'NSInteger':long;
         case 'float':
         case 'double':
         case 'number':
-            return iosType?'double double':'double'
+            return iosType?'double':'double'
         case 'boolean':
             return 'boolean'
         case 'date':
-            return iosType?'NSDate':'java.util.Date'
+            return iosType?'NSDate*':'java.util.Date'
         default :
-            return iosType?"NSString":'String'
+            return iosType?"NSString*":'String'
         }
         return ;
     }
@@ -113,29 +170,49 @@ function ClassModel(config,className,nsName){
         this.attributes.push(attr);
     }
 }
-function run(dir,defaultPackage){
-    require('fs').readFile(__dirname+'/java.tpl',function(err,data){
-        var javaTpl =  parseLite(data.toString());
-        require('fs').readFile(__dirname+'/oc.tpl',function(err,data){
-            var iosTpl =  parseLite(data.toString());
-            genSource(dir,javaTpl,iosTpl,defaultPackage)
+function readFile(file){
+    return new Promise(function(resolve,reject){
+        try{
+            fs.readFile(file,function(err,data){
+                if(err){reject(err)}else{resolve(data)};
+            });
+        }catch(e){
+            reject(e)
+        }
+    })
+}
+function readDir(file){
+    return new Promise(function(resolve,reject){
+        fs.readdir(file,function(err,data){
+               if(err){reject(err)}else{resolve(data)};
+        });
+    })
+}
+
+function writeFile(file,source){
+    return new Promise(function(resolve,reject){
+        fs.writeFile(file,source,function(err){
+            //console.log('write success:',file,err);
+            if(err){reject(err)}else{resolve(file)};
         })
     })
 }
-var dir = process.argv[2]
-var defaultPackage = process.argv[3]
-require('fs').readdir(dir,function(err,list){
-    dir = require('fs').realpathSync(dir);
-    //console.log(dir)
-    if(err){
-        console.error('invalid schema dir:',err)
-    }else{
-        console.log(`dir:${dir} defaultPackage${defaultPackage}`);
-        for(var n of list){
-            if(n.match(/\.js$/)){
+async function mkdirs(output,ns){
+    var file = output;
+    for(var n of ns.split('.')){
+        file = path.join(file,n);
+        if(!fs.existsSync(file)){
+            await new Promise(function(resolve,reject){
+                fs.mkdir(file,function(err,status){
+                    if(err){
+                        reject(err)
+                    }else{
+                        resolve(status)
+                    }
+                })
+            })
 
-            }
         }
-        run(dir,defaultPackage)
     }
-})
+    return file;
+}

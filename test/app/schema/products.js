@@ -8,7 +8,7 @@ exports.path = "/products/";
                  provider:{
                      //ref:"common#ProductProvider"
                      id: 11,
-                     //name: "Name of the product provier\n...",
+                     name: "Name of the product provier\n...",
                      displayName: "displayName" ,
                      tel:  "1234" ,
                      email:  "jindw@xxx.com"

@@ -9,11 +9,6 @@ exports.User = {
         type: "integer",
         minimum: 0
     },
-    /*
-    workAge:{
-        type: "integer",
-        minimum:"/age + 1"
-    },*/
     email: {
         type: "string",
         format:'email'

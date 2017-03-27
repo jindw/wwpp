@@ -11,9 +11,10 @@ $if{attr.description}/*$for{line in attr.description.split(/\r\n|\n/)}
 @end
 @implementation ${classModel.prefix}${classModel.className}
 @end
-$if{classModel.innerClasses.length}
+///${JSON.stringify(classModel.innerClasses)}
+$if{classModel.innerClasses.length>0}
 @interface ${classModel.prefix}${classModel.className}${classModel.innerClasses[0].className}
-$for{attr in classModel.innerClass[0].attributes}
+$for{attr in classModel.innerClasses[0].attributes}
 $if{attr.description}
 /*$for{line in attr.description.split(/\r\n|\n/)}
  * ${line} $end$
