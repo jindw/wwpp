@@ -15,7 +15,7 @@ exports.get = {
             name:  "Name of the product\n...",
             provider:{
                 //ref:"common#ProductProvider"
-                id: 11,
+                id:123,
                 name: "Name of the product provier\n...",
                 displayName: "displayName" ,
                 tel:  "1234" ,

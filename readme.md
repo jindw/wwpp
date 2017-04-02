@@ -1,18 +1,23 @@
-#wwpp codegen
+#Introduction
 
 usage
 ---
 ```
-npm install wwpm-codegen -g
-wwgen -s ./schema/ -o ./output -ns com.tianpeng
+npm install wwpm
+```
+#### Hello Word
+
+```
+const wwpp = require('wwpp');
+wwpp('./schema/','./webroot/').then(app =>app.start())
+
 ```
 
-
-definition spec
+#Definition Spec
 ---
 
-  a) ./schema/common.js
-  
+  a) Shared Common Class(eg: ./schema/common.js)
+
 ``` javascript
 //common struct difinition(first char is upper case!)
 exports.Product = {
@@ -34,12 +39,29 @@ exports.ProductProvider = {
     email: { type: "string" }
 }
 ```
-  b) ./schema/product.js
+  b) Resource Interface Define 
+  
+* struct
+
+```
+exports.path = "/product/:id"
+exports.get = {
+	schema:{
+		request:{...},//request data json schema definition
+		response:{...},//response data json schema definition
+	},
+	action:function(req,resp){//process action function
+		....
+	}
+}
+```
+     
+* eg:./schema/product.js
 
 ``` javascript
 
 //resource interface difinition
-//path is required, and any http methods:get ,post,delete.... 
+//path is required, and any http methods:get ,post,delete....
 exports.path = "/product/:id"
 exports.get = {
     schema:{
@@ -74,4 +96,13 @@ exports.post= {
         //no view returend and model(this) is stringify as json
     }
  }
-``` 
+
+
+
+
+##Codegen
+---
+```
+npm install wwpm -g
+wwgen -s ./schema/ -o ./output -ns com.tianpeng
+```

@@ -1,6 +1,6 @@
 {
   "name": "wwpp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "bugs": {"url": "https://github.com/jindw/webwork/issues"},
   "description": "webwork plus plus",
   "keywords": ["web","rest","restfull","http","application","framework"],
@@ -8,6 +8,5 @@
   "maintainers": [{"name": "jindw","email": "jindw@xidea.org" }],
   "license": "MIT",
   "engines": { "node": ">= 6.0.0"},
-  "dependencies": {"webwork":"*"},
-  "optionalDependencies": {"xmldom":"*","lite":"*"}
+  "dependencies": {"webwork":"*","ajv":"*","asf":"*","lite":"*"}
 }

@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+const gen =require('wwpp-codegen');
+const fs =require('fs');
+var args = process.argv.slice(2);
+var params = {};
+var key = null;
+args.map(function(v){
+    if(v.charAt() == '-'){
+        key = v.substr(1);
+    }else{
+        params[key] = v;
+    }
+})
+var schemaDir = params.source||params.s
+var outputDir = params.output|| params.out||params.o
+var nsPrefix = params.ns
+var rtv = function(){
+    if(!schemaDir || !outputDir){
+        console.error(`schemaDir and outputDir is required!!`)
+    }else if(!fs.existsSync(schemaDir)){
+        console.error(`schemaDir:${schemaDir} is not exist!!`)
+    }else if(!fs.existsSync(outputDir)){
+        console.error(`outputDir:${outputDir} is not exist!!`)
+    }else{
+        if(!nsPrefix){
+            console.warn(`model namespace is empty!! use "com.example"`)
+            nsPrefix = 'com.example'
+        }
+        return gen(schemaDir,outputDir,nsPrefix);
+    }
+    console.log('usage: wwgen -s ./schema/ -o ./output -ns com.example')
+}()
