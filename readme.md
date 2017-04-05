@@ -1,4 +1,4 @@
-#Introduction
+# Introduction
 
 usage
 ---
@@ -13,7 +13,7 @@ wwpp('./schema/','./webroot/').then(app =>app.start())
 
 ```
 
-#Definition Spec
+# Definition Spec
 ---
 
   a) Shared Common Class(eg: ./schema/common.js)
@@ -96,11 +96,11 @@ exports.post= {
         //no view returend and model(this) is stringify as json
     }
  }
+```
 
 
 
-
-##Codegen
+## Codegen
 ---
 ```
 npm install wwpm -g
