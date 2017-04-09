@@ -26,6 +26,9 @@ exports.Product = {
     provider:{
         $ref:"common#ProductProvider"
     },
+    listingTime:{
+        type:"date"
+    },
     price: {
         type: "number",
         minimum: 0,

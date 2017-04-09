@@ -26,7 +26,8 @@ var rtv = function(){
             console.warn(`model namespace is empty!! use "com.example"`)
             nsPrefix = 'com.example'
         }
-        return gen(schemaDir,outputDir,nsPrefix);
+        params.nsPrefix = nsPrefix;
+        return gen(schemaDir,outputDir,params);
     }
-    console.log('usage: wwgen -s ./schema/ -o ./output -ns com.example')
+    console.log('usage: wwgen -s ./schema/ -o ./output -ns com.example.model -annotationPrefix com.example.annotation -requestBase com.example.RequestBase')
 }()

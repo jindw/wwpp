@@ -1,0 +1,88 @@
+<html>
+<head><title>Router: ${path}</title>
+<style>
+textarea{
+width:99%;
+    background:#eee;
+    min-height:200px;
+}
+table{
+    width:98%;
+    border-collapse:collapse;
+}
+th,td{
+    border:2px solid #f6f;
+}
+th{
+    width:15%;
+    text-align:left;
+}
+td:nth-child(2){
+    width:20%;;
+
+}
+td:nth-child(3){
+    width:15%;
+    text-overflow:ellipsis;
+}
+td:nth-child(4){
+    width:15%;
+}
+.group{
+    border:3px double #696;
+    padding:5px;
+    opacity:.2;
+}
+.group:hover{
+    opacity:1
+}
+h2,h4{
+    font-weight:bolder;
+    background:#eee;
+}
+
+</style>
+</head>
+<body>
+<h2><a style="margin-right:40px" href='/$/api/'>↑</a> Router: ${path}  &#160; <span style="margin-left:40px" c:if="${title}">(${title})</span></h2>
+<ul>
+    <li c:for="${n : method}"><a href="#${path}__${n}">${n.toUpperCase()}</a></li>
+</ul>
+<div class="group" c:for="${n:method}">
+    <a name="${path}__${n}"/>
+    <c:var name ="m" value="${method[n]}"/>
+    <c:var name ="v" value="${m.config.validator}"/>
+    <h4>${n.toUpperCase()} Request</h4>
+
+    <c:var name="props" value="${v.request.properties}"/>
+    <table border="1" cellpadding="5px" cellspacing="0">
+        <tr c:for="${pn:props}">
+            <c:var name="pv" value="${props[pn]}"/>
+            <th>${pn}</th>
+            <td>
+                <c:if test="${pv.$ref}"><a href="#${util.genid(path,pv.$ref)}">${pv.$ref.replace('/definitions/','')}</a></c:if>
+                <c:else test="${pv.items && pv.items.$ref}">array(
+                        <a href="#${util.genid(path,pv.items.$ref)}">${pv.items.$ref.replace('/definitions/','')}</a>
+                    )</c:else>
+                <c:else>${pv.type} <span c:if="${pv.class}">(${pv.class})</span></c:else></td>
+            <td>${pv.optional?'optional':'required'}</td>
+            <td><pre>${util.genTips(pv)}</pre></td>
+            <td>${pv.description||'&nbsp;'}</td>
+        </tr>
+    </table>
+    <h4>${n.toUpperCase()} Response</h4>
+    <c:var name="props" value="${v.response.properties}"/>
+    <c:include selector="table"/>
+    <c:for var="refName" list="${v.refs}">
+        <a name="${util.genid(path,refName)}"/>
+        <h4>${refName.replace('/definitions/','')}</h4>
+        <c:var name="refValue" value="${v.refs[refName]}"/>
+        <c:var name="props" value="${refValue.properties}"/>
+        <c:include selector="table"/>
+    </c:for>
+
+    <h4>Action Impl Code</h4>
+    <textarea>${m.impl}</textarea>
+</div>
+</body>
+</html>

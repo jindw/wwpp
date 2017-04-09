@@ -1,6 +1,6 @@
 {
   "name": "wwpp",
-  "version": "0.1.4",
+  "version": "0.1.9",
   "bugs": {"url": "https://github.com/jindw/webwork/issues"},
   "description": "webwork plus plus",
   "keywords": ["web","rest","restfull","http","application","framework"],

@@ -1,5 +1,5 @@
 exports.path = "/products/";
- exports.get = {
+exports.get = {
      action:function(req,resp){
          this.list = [
              {

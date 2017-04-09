@@ -1,4 +1,5 @@
 exports.path = "/product/:id"
+exports.title = "Test Title"
 exports.get = {
     schema:{
         request:{id:{type:'integer'}},//ignore input define,got from router
@@ -15,7 +16,7 @@ exports.get = {
             name:  "Name of the product\n...",
             provider:{
                 //ref:"common#ProductProvider"
-                id:123,
+                id:123+"",
                 name: "Name of the product provier\n...",
                 displayName: "displayName" ,
                 tel:  "1234" ,
@@ -23,17 +24,18 @@ exports.get = {
             },
             price: 1.25
         }
+        return '/test.xhtml'
     }
 }
 exports.post= {
     schema:{
         request:{
-            id:{type:'integer'}
-        },
-        response:{
             value:{
                 ref:'common#Product',
             }
+        },
+        response:{
+            id2:{type:'integer'}
         }
     },
     action:function(req,resp){
