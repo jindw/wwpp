@@ -15,12 +15,12 @@ exports.get = {
     action:function(req,resp){
         console.log('run action!!')
         this.value = {
-            id: +req.params.id,
+            id: 123,
             listingTime:123,
             name:  "Name of the product\n...",
             provider:{
                 //ref:"common#ProductProvider"
-                id:123,
+                id:1232222,
                 name: "Name of the product provier\n...",
                 displayName: "displayName" ,
                 tel:  "1234" ,

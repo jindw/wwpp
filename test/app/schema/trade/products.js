@@ -5,6 +5,7 @@ exports.get = {
              {
                  id:1024,
                  name: "Product X",
+                 listingTime:Date.now(),
                  provider:{
                      //ref:"common#ProductProvider"
                      id: 11,
