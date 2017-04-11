@@ -38,12 +38,11 @@ exports.post= {
             value:{
                 ref:'common#Product',
             }
-        },
-        response:{
-            id2:{type:'integer'}
         }
+        //,response:{ id:{type:'integer'}}
     },
-    action:function(req,resp){
+    action:function*(req,resp){
         //TODO:..
+        this.value = yield req.value;
     }
  }

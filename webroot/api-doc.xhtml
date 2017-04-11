@@ -41,12 +41,29 @@ h2,h4{
     background:#eee;
 }
 
+.method{
+    display:inline-block;
+    width:80px;
+}
+.test{
+    display:inline-block;
+    margin:2px;
+    padding:0 10px;
+    border-radius:3px;
+    border:1px solid #666;
+    background:#eee;
+}
 </style>
+
 </head>
 <body>
-<h2><a style="margin-right:40px" href='/$/api/'>↑</a> Router: ${path}  &#160; <span style="margin-left:40px" c:if="${title}">(${title})</span></h2>
+<h2><a style="margin-right:40px" href='/$/api/'>↑</a> Router:  ${path} &#160;
+    <span style="margin-left:40px" c:if="${title}">(${title})</span></h2>
 <ul>
-    <li c:for="${n : method}"><a href="#${path}__${n}">${n.toUpperCase()}</a></li>
+    <li c:for="${n : method}">
+        <a class="method" href="#${path}__${n}">${n.toUpperCase()}</a>
+        <a class="test" title="click to test" href="#" onclick="doTest(this,${JSON.stringify(n)},${JSON.stringify(path)})">test</a>
+    </li>
 </ul>
 <div class="group" c:for="${n:method}">
     <a name="${path}__${n}"/>
@@ -84,5 +101,74 @@ h2,h4{
     <h4>Action Impl Code</h4>
     <textarea>${m.impl}</textarea>
 </div>
+
+<script>//<![CDATA[
+function doTest(thiz,method,path){
+    if(/get/i.test(method)){
+        var url = path.replace(/\:(\w+)/,function(a){
+            return prompt(a,'');
+        })
+        thiz.href = (url);
+    }else{
+        var map = {}
+        var url = path.replace(/\:(\w+)/,function(a,key){
+            return map[key]= prompt(a,'');
+        })
+        var json = prompt('input '+method+' data',JSON.stringify(map));
+        if(json.match(/^\s*\{/)){
+            try{
+                map = JSON.parse(json);
+            }catch(e){
+                console.log(e);
+                alert('invalid json:'+e+json)
+                return false;
+            }
+            var isJSON = true;
+        }else{//url encoded
+            map = {};
+            json.replace(/([^=]+)(?:=([^\u0026]*))/g,function(a,key,value){
+                key = decodeURIComponent(key);
+                value = decodeURIComponent(value);
+                if(key in map){
+                    map[key] = [].concat(map[key],value)
+                }else{
+                    map[key] = value;
+                }
+            })
+        }
+        var url = path.replace(/\:(\w+)/,function(a,key){
+            var value = map[key];
+            delete map[key];
+            return value;
+        })
+
+        function encodeParam(map){
+            var buf = [];
+            for(var n in map){
+                var v = map[n];
+                n = encodeURIComponent(n);
+                if(v instanceof Array){
+                    buf.push(v.map(function (a){return n+'[]='+encodeURIComponent(a)}))
+                }
+                buf.push(n+'='+encodeURIComponent(v))
+            }
+            return buf.join('\u0026');
+        }
+        var postData = isJSON ? JSON.stringify(map):encodeParam(map);
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState == 4){
+                alert('test result:\n'+xhr.responseText);
+            }
+        }
+        xhr.open(method.toUpperCase(),url,true)
+        xhr.setRequestHeader("Content-Type",
+            isJSON?"application/json":"application/x-www-form-urlencoded")
+        xhr.send(postData);
+        return false;
+    }
+}
+//]]>
+</script>
 </body>
 </html>
